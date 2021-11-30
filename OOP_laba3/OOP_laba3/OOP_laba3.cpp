@@ -69,18 +69,6 @@ public:
 	char getCode() override {
 		return 'S';
 	}
-	//Segment() {
-	//	x1 = 0;
-	//	y1 = 0;
-	//	x2 = 0;
-	//	y2 = 0;
-	//}
-	//Segment(Segment* s) {
-	//	x1 = s->x1;
-	//	x2 = s->x2;
-	//	y1 = s->y1;
-	//	y2 = s->y2;
-	//}
 	Segment() {
 		printf("Segment() %p\n", this);
 		p1 = new Point;
@@ -106,7 +94,7 @@ public:
 		printf("}\n");
 	}
 	~Segment() {
-		printf("~Segment %p\n", this);
+		printf("\n~Segment %p\n", this);
 		printf("{\n");
 		delete p1;
 		delete p2;
@@ -178,10 +166,10 @@ private:
 			base = factory.createBase(_base->getCode(), _base);
 		}
 		~Node() {
-			printf("~Node(): %p\n", this);
+			printf("\n~Node(): %p\n", this);
 			printf("{\n");
 			delete base;
-			printf("}\n");
+			printf("\n}\n");
 		}
 
 		bool isEOL() { return (this == nullptr ? 1 : 0); }
@@ -258,6 +246,16 @@ public:
 			current = current->next;
 		}
 	}
+	int getSize() {
+		if (isEmpty()) return 0;
+		Node* node = first;
+		int i = 1;
+		while (!node->next->isEOL()) {
+			i++;
+			node = node->next;
+		}
+		return i;
+	}
 
 	Base* getObj(int i) {
 		int j = 1;
@@ -278,19 +276,25 @@ public:
 	}
 
 	~List() {
+		printf("~List()\n");
 		if (!(isEmpty())) {
+			printf("[______________________________________\n");
 			Node* tmp = last;
 			while (tmp != first) {
+				printf("\t");
 				delete_last();
 				tmp = last;
 			}
 			delete_first();
+			printf("________________________________________]\n");
 		}
 	}
 };
 
 int main()
 {
+	setlocale(LC_ALL, "Rus");
+
 	List list;
 	for (int i = 0; i < 5; i++) {
 		list.add(new Point(i, i));
@@ -304,9 +308,11 @@ int main()
 		delete p1;
 		delete p2;
 	}
+	printf("Кол-во элементов до удаления: %d\n", list.getSize());
 
 	list.getObjAndDelete(5);
 	list.print();
 
+	printf("Кол-во элементов после удаления: %d\n", list.getSize());
 	system("pause");
 }
