@@ -1,5 +1,5 @@
 ﻿#include <iostream>
-///------------------------------------------------—
+
 class Base {
 protected:
 	char code = 'B';
@@ -59,7 +59,6 @@ public:
 		printf("~Point\n");
 	}
 };
-
 class Segment :public Base {
 private:
 	//int x1, x2, y1, y2;
@@ -114,92 +113,91 @@ public:
 		printf("}\n");
 	}
 };
-
-
-
 class Cat :public Base {
 private:
-	char Name[20];
+	char Name[30];
 	char Color[30];
 public:
-	void print() override {
-		printf("Cat name= %s , is the color=%s\n", Name, Color);
+	Cat(const Cat* cat) {
+		strcpy(Name, cat->Name);
+		strcpy(Color, cat->Color);
 	}
 
-};
+	void setName(char* string) {
+		strcpy(Name, string);
+	}
+	void setColor(char* string) {
+		strcpy(Color, string);
+	}
+	void print() override {
+		printf("Cat name= %s, the color=%s\n", Name, Color);
+	}
 
+	~Cat() {
+		printf("~Cat() %p\n", this);
+	}
+};
 
 class MyBaseFactory {
 public:
-	MyBaseFactory() {
-	}
+	MyBaseFactory() {}
 	Base* createBase(char code, Base* p)
 	{
 		Base* _base = nullptr;
 		switch (code)
 		{
-		case 'P':
-			_base = new Point((Point*)(p));
-			break;
-		case 'S':
-			_base = new Segment((Segment*)(p));
-			break;
-		case 'H':
-			_base = new Segment((Segment*)(p));
-			break;
-		case 'M':
-			_base = new Segment((Segment*)(p));
-			break;
-		case 'C':
-			_base = new Segment((Segment*)(p));
-			break;
-		case 'D':
-			_base = new Segment((Segment*)(p));
-			break;
-		default:;
+			case 'P':
+				_base = new Point((Point*)(p));
+				break;
+
+			case 'S':
+				_base = new Segment((Segment*)(p));
+				break;
+
+			case 'C':
+				_base = new Cat((Cat*)(p));
+				break;
+
+			default:;
 		}
 		return _base;
 	}
 };
 
-
-class BaseList {
+class List {
 
 private:
 
 	class Node {
 	public:
-		Base* _base;
-
+		Base* base;
 		Node* next; //указатель на следующую ячейку списка
 
-		//изменение
-		bool isEOL() { return (this == nullptr ? 1 : 0); }
-		Node(Base* __base) : next(nullptr) {
-			MyBaseFactory facrory;
-			_base = facrory.createBase(__base->getCode(), __base);
+		Node(Base* _base) : next(nullptr) {
+			MyBaseFactory factory;
+			base = factory.createBase(_base->getCode(), _base);
 		}
 		~Node() {
 			printf("~Node(): %p\n", this);
 			printf("{\n");
-			delete _base;
+			delete base;
 			printf("}\n");
-
 		}
+
+		bool isEOL() { return (this == nullptr ? 1 : 0); }
 	};
 
-
-	void remove_first() {
+	void delete_first() {
 		if (isEmpty()) return;
 
 		Node* temp = first;
 		first = temp->next;
 		delete temp;
 	}
-	void remove_last() {
+	void delete_last() {
 		if (isEmpty()) return;
 		if (last == first) {
-			remove_first();
+			delete_first();
 			return;
 		}
 
@@ -217,11 +215,8 @@ public:
 	Node* last;
 
 	void add(Base* _base) {
-		//создаем УЗЕЛ со значением __base
-
 		Node* another = new Node(_base);
 
-		//один узел в списке
 		if (isEmpty()) {
 			first = another;
 			last = another;
@@ -230,24 +225,22 @@ public:
 		last->next = another;
 		last = another;
 	}
-
 	bool isEmpty() {
 		return first == nullptr;
 	}
-
-	void remove_node(Base* __base) {
+	void deleteObj(Base* __base) {
 		if (isEmpty()) return;
-		if (last->_base == __base) {
-			remove_last();
+		if (last->base == __base) {
+			delete_last();
 			return;
 		}
-		if (first->_base == __base) {
-			remove_first();
+		if (first->base == __base) {
+			delete_first();
 			return;
 		}
 
 		Node* current = first;
-		while (current->next != nullptr && current->next->_base != __base) {
+		while (current->next != nullptr && current->next->base != __base) {
 			current = current->next;
 		}
 		if (current->next == nullptr) {
@@ -258,54 +251,51 @@ public:
 		current->next = current->next->next;
 		delete tmp_next;
 	}
+	void print() {
+		Node* current = first;
+		while (!(current->isEOL())) {
+			current->base->print();
+			current = current->next;
+		}
+	}
 
-	Base* getNode(int i) {
+	Base* getObj(int i) {
 		int j = 1;
 		Node* current = first;
 		while (j < i && !(current->isEOL())) {
 			current = current->next;
 			j++;
 		}
-		return(current->_base);
+		return(current->base);
 	}
-
-	Base* getdelNode(int i) {
-		Base* ret = getNode(i);
+	Base* getObjAndDelete(int i) {
+		Base* ret = getObj(i);
 		Base* tmp;
 		MyBaseFactory factory;
 		tmp = factory.createBase(ret->getCode(), ret);
-		remove_node(ret);
+		deleteObj(ret);
 		return tmp;
 	}
 
-	void print_list() {
-		Node* current = first;
-		while (!(current->isEOL())) {
-			current->_base->print();
-			current = current->next;
-		}
-	}
-
-	~BaseList() {
+	~List() {
 		if (!(isEmpty())) {
 			Node* tmp = last;
 			while (tmp != first) {
-				remove_last();
+				delete_last();
 				tmp = last;
 			}
-			remove_first();
+			delete_first();
 		}
 	}
 };
 
-
 int main()
 {
-	BaseList list;
+	List list;
 	for (int i = 0; i < 5; i++) {
 		list.add(new Point(i, i));
 	}
-	list.print_list();
+	list.print();
 	for (int i = 0; i < 5; i++) {
 		Point* p1 = new Point(i + 200, i + 200);
 		Point* p2 = new Point(i + 300, i + 300);
@@ -314,6 +304,9 @@ int main()
 		delete p1;
 		delete p2;
 	}
+
+	list.getObjAndDelete(5);
+	list.print();
 
 	system("pause");
 }
