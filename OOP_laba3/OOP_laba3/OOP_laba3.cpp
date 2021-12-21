@@ -5,6 +5,7 @@ protected:
 	char code = 'B';
 	int x = 0, y = 0;
 public:
+
 	virtual char getCode() {
 		return code;
 	}
@@ -18,7 +19,6 @@ class Point : public Base {
 private:
 	int x, y;
 public:
-
 	char getCode() override {
 		return 'P';
 	}
@@ -26,20 +26,21 @@ public:
 		x = 0;
 		y = 0;
 	}
-	Point(const Point* p) {
-		x = p->x;
-		y = p->y;
-	}
 	Point(int _x, int _y) {
 		x = _x;
 		y = _y;
 	}
+	Point(const Point* p) {
+		x = p->x;
+		y = p->y;
+	}
+
 
 	void print() override {
 		printf(" \t%i %i\n", x, y);
 	}
-	void SetXY(int x, int y) {
-		printf("SetXY()\n");
+	void setXY(int x, int y) {
+		printf("setXY()\n");
 		this->x = x;
 		this->y = y;
 	}
@@ -96,37 +97,38 @@ public:
 		printf("\t\t}\n");
 	}
 };
-class Cat :public Base {
-private:
-	char Name[30];
-	char Color[30];
-public:
-	Cat(const Cat* cat) {
-		strcpy(Name, cat->Name);
-		strcpy(Color, cat->Color);
-	}
-
-	void setName(char* string) {
-		strcpy(Name, string);
-	}
-	void setColor(char* string) {
-		strcpy(Color, string);
-	}
-	void print() override {
-		printf("Cat name= %s, the color=%s\n", Name, Color);
-	}
-
-	~Cat() {
-		printf("~Cat() %p\n", this);
-	}
-};
+//class Cat :public Base {
+//private:
+//	char Name[30];
+//	char Color[30];
+//public:
+//	Cat(const Cat* cat) {
+//		strcpy(Name, cat->Name);
+//		strcpy(Color, cat->Color);
+//	}
+//
+//	void setName(char* string) {
+//		strcpy(Name, string);
+//	}
+//	void setColor(char* string) {
+//		strcpy(Color, string);
+//	}
+//	void print() override {
+//		printf("Cat name= %s, the color=%s\n", Name, Color);
+//	}
+//
+//	~Cat() {
+//		printf("~Cat() %p\n", this);
+//	}
+//};
 
 class MyBaseFactory {
 public:
 	MyBaseFactory() {}
-	Base* createBase(char code, Base* p)
+	Base* createBase(Base* p)
 	{
 		Base* _base = nullptr;
+		char code = p->getCode();
 		switch (code)
 		{
 		case 'P':
@@ -137,9 +139,9 @@ public:
 			_base = new Segment((Segment*)(p));
 			break;
 
-		case 'C':
+		/*case 'C':
 			_base = new Cat((Cat*)(p));
-			break;
+			break;*/
 
 		default:;
 		}
@@ -156,7 +158,7 @@ private:
 
 		Node(Base* _base) : next(nullptr) {
 			MyBaseFactory factory;
-			base = factory.createBase(_base->getCode(), _base);
+			base = factory.createBase(_base);
 		}
 		~Node() {
 			printf("\t~Node(): %p\n", this);
@@ -244,8 +246,13 @@ public:
 		printf("Вывод хранилища:\n[\n");
 		Node* current = first;
 		while (!(current->isEOL())) {
-			current->base->print();
-			current = current->next;
+			if (current) {
+				current->base->print();
+				current = current->next;
+			}
+			else {
+				printf("\tnullptr\n");
+			}
 		}
 		printf("]\n");
 	}
@@ -263,11 +270,10 @@ public:
 	Base* getObj(int i) {
 		if (isEmpty()) {
 			printf("Хранилище пусто, возвращать нечего\n");
-			return nullptr;//исправить на исключение
+			return nullptr;
 		}
 		int j = 2;
 		Node* current = first;
-		//while (j < (i + 1) && !(current->isEOL())) {
 		while (j < i && !(current->isEOL())) {
 
 			current = current->next;
@@ -279,12 +285,12 @@ public:
 	Base* getObjAndDelete(int i) {
 		if (isEmpty()) {
 			printf("\tХранилище пусто, возвращать нечего\n");
-			return nullptr;//исправить на исключение
+			return nullptr;
 		}
 		Base* ret = getObj(i);
 		Base* tmp;
 		MyBaseFactory factory;
-		tmp = factory.createBase(ret->getCode(), ret);
+		tmp = factory.createBase(ret);
 		deleteObj(ret);
 		printf("\tОбъект передан\n");
 		return tmp;
@@ -296,7 +302,6 @@ public:
 			printf("[______________________________________\n");
 			Node* tmp = last;
 			while (tmp != first) {
-				//printf("");
 				delete_last();
 				tmp = last;
 			}
